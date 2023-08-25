@@ -1,15 +1,15 @@
 import {
+  ConflictException,
   Injectable,
-  BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './dto/user.entity';
+import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
 import { SignInUserDto } from './dto/sign-in-.dto';
-import { JwtService } from '@nestjs/jwt';
+import { User } from './dto/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -19,16 +19,23 @@ export class AuthService {
   ) {}
 
   async signUp(createUserDto: CreateUserDto): Promise<User> {
-    const { name, email, address, password } = createUserDto;
-    const saltOrRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltOrRounds);
-    const user = this.userRepo.create({
-      name,
-      email,
-      address,
-      password: hashedPassword,
-    });
-    return await this.userRepo.save(user);
+    try {
+      const { name, email, address, password } = createUserDto;
+      const saltOrRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltOrRounds);
+      const user = this.userRepo.create({
+        name,
+        email,
+        address,
+        password: hashedPassword,
+      });
+      return await this.userRepo.save(user);
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('Email already exists');
+      }
+      throw error;
+    }
   }
 
   async signIn(signInUser: SignInUserDto): Promise<any> {
@@ -48,3 +55,4 @@ export class AuthService {
     }
   }
 }
+
