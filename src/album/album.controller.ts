@@ -21,12 +21,14 @@ import { Album } from './dto/album.entity';
 import { PaginationDto } from './dto/pagination.dto';
 import { AlbumDto } from './dto/album.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { Logger } from '@nestjs/common';
 
 @ApiTags('Album')
 @UseGuards(AuthGuard())
 @ApiBearerAuth('JWT-auth')
 @Controller('albums')
 export class AlbumController {
+  private logger = new Logger('AlbumController', { timestamp: true });
   constructor(private albumService: AlbumService) {}
 
   @Get()
@@ -48,6 +50,7 @@ export class AlbumController {
     type: PaginationDto,
   })
   albums(@Query() paginationDto: PaginationDto): Promise<Album[]> {
+    this.logger.verbose(`page is ${paginationDto.page}`);
     return this.albumService.albums(paginationDto);
   }
   @Post()
