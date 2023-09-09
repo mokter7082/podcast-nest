@@ -26,7 +26,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
   app.useGlobalPipes(new ValidationPipe());
-  const port = '3000';
+  const port = 3000;
+  app.enableCors();
   await app.listen(port);
   logger.log(`Application running on http://localhost:${port}/api `);
 }
